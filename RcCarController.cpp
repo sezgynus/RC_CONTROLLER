@@ -140,6 +140,8 @@ void RcCarController::computeMotorOutput()
     const bool throttleActive = throttle > 0.05f;
     const bool brakeActive    = brake    > 0.05f;
 
+    float maxMotor = gearMaxMotor[gearLevel];
+
     // ===== CASE 1: FULL BRAKE =====
     if (throttleActive && brakeActive) {
         motorCommand = 0.0f;
@@ -150,7 +152,7 @@ void RcCarController::computeMotorOutput()
 
     // ===== CASE 2: FORWARD =====
     if (throttleActive) {
-        motorCommand = throttle;   // + forward
+        motorCommand = throttle * maxMotor;   // scaled by gear
         brakeCommand = 0.0f;
         lights.brakeLights = false;
         return;
@@ -158,7 +160,7 @@ void RcCarController::computeMotorOutput()
 
     // ===== CASE 3: REVERSE =====
     if (brakeActive) {
-        motorCommand = -brake;     // - reverse
+        motorCommand = -brake * maxMotor;     // scaled by gear
         brakeCommand = 0.0f;
         lights.brakeLights = false;
         return;
@@ -168,4 +170,15 @@ void RcCarController::computeMotorOutput()
     motorCommand = 0.0f;
     brakeCommand = 0.0f;
     lights.brakeLights = false;
+}
+void RcCarController::shiftUp() {
+  if (gearLevel < Gear::GEAR4) {
+    gearLevel = static_cast<Gear>(static_cast<int>(gearLevel) + 1);
+  }
+}
+
+void RcCarController::shiftDown() {
+  if (gearLevel > Gear::GEAR1) {
+    gearLevel = static_cast<Gear>(static_cast<int>(gearLevel) - 1);
+  }
 }

@@ -18,6 +18,14 @@ public:
     bool hazard;
   };
 
+  enum Gear {
+    GEAR1 = 0,
+    GEAR2,
+    GEAR3,
+    GEAR4,
+    NUM_GEARS
+  };
+
   RcCarController();
 
   // ===== Input interface =====
@@ -48,6 +56,13 @@ public:
   LightingState getLightingState() const;
   bool isFailsafeActive() const;
 
+  // ===== Gear / Vites =====
+  void shiftUp();
+  void shiftDown();
+  Gear getGear() const {
+    return gearLevel;
+  }
+
 private:
   // Inputs
   float throttle;
@@ -68,6 +83,10 @@ private:
   uint32_t lastUpdateMs;
   uint32_t failsafeTimeoutMs;
   bool failsafeActive;
+
+  // Gear
+  Gear gearLevel;
+  float gearMaxMotor[NUM_GEARS] = { 0.65f, 0.75f, 0.85f, 1.0f };  // vites başına max motor scaling
 
   // Internal
   void applyFailsafe();

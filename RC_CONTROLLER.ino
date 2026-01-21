@@ -11,6 +11,8 @@ ButtonEdge rightSig;
 ButtonEdge hazard;
 ButtonEdge headlights;
 ButtonEdge gear;
+ButtonEdge dpadup;
+ButtonEdge dpaddn;
 
 void setup() {
   Serial.begin(115200);
@@ -92,6 +94,15 @@ void processGamepad(ControllerPtr ctl) {
     }
   }
 
+  // Triangle -> Hazard
+  if (dpadup.rising(ctl->dpad() & DPAD_UP)) {
+    controller.shiftUp();
+  }
+
+  // Triangle -> Hazard
+  if (dpaddn.rising(ctl->dpad() & DPAD_DOWN)) {
+    controller.shiftDown();
+  }
   if (ctl->b()) {
     // Turn on the 4 LED. Each bit represents one LED.
     static int led = 0;
