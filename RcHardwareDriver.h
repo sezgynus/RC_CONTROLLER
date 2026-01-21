@@ -20,7 +20,7 @@ private:
   static constexpr uint32_t BLINK_PERIOD_MS = 500;
 
   // PWM channels
-  static constexpr int MOTOR_PWM_CH = 0;
+  static constexpr int MOTOR_PWM_CH = 2;
   static constexpr int SERVO_PWM_CH = 1;
 };
 

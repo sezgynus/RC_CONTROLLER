@@ -29,16 +29,19 @@ RcCarController::RcCarController() {
 void RcCarController::setThrottle(float value) {
   throttle = clamp(value, 0.0f, 1.0f);
   lastUpdateMs = millis();
+  Serial.printf("Throttle=%f\n", throttle);
 }
 
 void RcCarController::setBrake(float value) {
   brake = clamp(value, 0.0f, 1.0f);
   lastUpdateMs = millis();
+  Serial.printf("Brake=%f\n", brake);
 }
 
 void RcCarController::setSteering(float value) {
   steering = clamp(value, -1.0f, 1.0f);
   lastUpdateMs = millis();
+  Serial.printf("Steering=%f\n", steering);
 }
 
 void RcCarController::setDirection(Direction dir) {
@@ -127,7 +130,9 @@ void RcCarController::applyFailsafe() {
   motorCommand = 0.0f;
   brakeCommand = 1.0f;
 
+  Serial.println("Failsafe!!!");
   lights.brakeLights = true;
+  lights.hazard = true;
 }
 
 void RcCarController::computeMotorOutput() {

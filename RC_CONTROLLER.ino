@@ -4,6 +4,13 @@
 RcCarController controller;
 RcHardwareDriver hardware;
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
+
+ButtonEdge leftSig;
+ButtonEdge rightSig;
+ButtonEdge hazard;
+ButtonEdge headlights;
+ButtonEdge gear;
+
 void setup() {
   Serial.begin(115200);
   Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
@@ -24,6 +31,8 @@ void loop() {
   }
   controller.update(millis());
   hardware.update(controller);
+  //vTaskDelay(5);
+  //delay(150);
 }
 void processControllers() {
   for (auto myController : myControllers) {
@@ -40,25 +49,35 @@ void processGamepad(ControllerPtr ctl) {
   // There are different ways to query whether a button is pressed.
   // By query each button individually:
   //  a(), b(), x(), y(), l1(), etc...
-  if (ctl->a()) {
-    static int colorIdx = 0;
-    // Some gamepads like DS4 and DualSense support changing the color LED.
-    // It is possible to change it by calling:
-    switch (colorIdx % 3) {
-      case 0:
-        // Red
-        ctl->setColorLED(255, 0, 0);
-        break;
-      case 1:
-        // Green
-        ctl->setColorLED(0, 255, 0);
-        break;
-      case 2:
-        // Blue
-        ctl->setColorLED(0, 0, 255);
-        break;
+  controller.setThrottle((float)(ctl->throttle()) / 1023);
+  controller.setBrake((float)(ctl->brake()) / 1023);
+  controller.setSteering((float)(ctl->axisX() - 4) / 512);
+  //controller.setHazard(true);
+
+  if (leftSig.rising(ctl->l1())) {
+    controller.setLeftSignal(!controller.getLightingState().leftSignal);
+  }
+
+  // R1 -> Right signal
+  if (rightSig.rising(ctl->r1())) {
+    controller.setRightSignal(!controller.getLightingState().rightSignal);
+  }
+
+  // Triangle -> Hazard
+  if (hazard.rising(ctl->y())) {
+    controller.setHazard(!controller.isHazardActive());
+  }
+
+  //Gear -> Direction
+  if (gear.rising(ctl->a())) {
+    RcCarController::Direction current_dir = controller.getDirection();
+    if (current_dir == RcCarController::Direction::FORWARD) {
+      controller.setDirection(RcCarController::Direction::REVERSE);
+      ctl->setColorLED(255, 0, 0);
+    } else {
+      controller.setDirection(RcCarController::Direction::FORWARD);
+      ctl->setColorLED(0, 0, 255);
     }
-    colorIdx++;
   }
 
   if (ctl->b()) {
@@ -83,62 +102,62 @@ void processGamepad(ControllerPtr ctl) {
 
   // Another way to query controller data is by getting the buttons() function.
   // See how the different "dump*" functions dump the Controller info.
-  dumpGamepad(ctl);
+  //dumpGamepad(ctl);
 }
 void dumpGamepad(ControllerPtr ctl) {
-    Serial.printf(
-        "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
-        "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",
-        ctl->index(),        // Controller Index
-        ctl->dpad(),         // D-pad
-        ctl->buttons(),      // bitmask of pressed buttons
-        ctl->axisX(),        // (-511 - 512) left X Axis
-        ctl->axisY(),        // (-511 - 512) left Y axis
-        ctl->axisRX(),       // (-511 - 512) right X axis
-        ctl->axisRY(),       // (-511 - 512) right Y axis
-        ctl->brake(),        // (0 - 1023): brake button
-        ctl->throttle(),     // (0 - 1023): throttle (AKA gas) button
-        ctl->miscButtons(),  // bitmask of pressed "misc" buttons
-        ctl->gyroX(),        // Gyro X
-        ctl->gyroY(),        // Gyro Y
-        ctl->gyroZ(),        // Gyro Z
-        ctl->accelX(),       // Accelerometer X
-        ctl->accelY(),       // Accelerometer Y
-        ctl->accelZ()        // Accelerometer Z
-    );
+  Serial.printf(
+    "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
+    "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",
+    ctl->index(),        // Controller Index
+    ctl->dpad(),         // D-pad
+    ctl->buttons(),      // bitmask of pressed buttons
+    ctl->axisX(),        // (-511 - 512) left X Axis
+    ctl->axisY(),        // (-511 - 512) left Y axis
+    ctl->axisRX(),       // (-511 - 512) right X axis
+    ctl->axisRY(),       // (-511 - 512) right Y axis
+    ctl->brake(),        // (0 - 1023): brake button
+    ctl->throttle(),     // (0 - 1023): throttle (AKA gas) button
+    ctl->miscButtons(),  // bitmask of pressed "misc" buttons
+    ctl->gyroX(),        // Gyro X
+    ctl->gyroY(),        // Gyro Y
+    ctl->gyroZ(),        // Gyro Z
+    ctl->accelX(),       // Accelerometer X
+    ctl->accelY(),       // Accelerometer Y
+    ctl->accelZ()        // Accelerometer Z
+  );
 }
 void onDisconnectedController(ControllerPtr ctl) {
-    bool foundController = false;
+  bool foundController = false;
 
-    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
-        if (myControllers[i] == ctl) {
-            Serial.printf("CALLBACK: Controller disconnected from index=%d\n", i);
-            myControllers[i] = nullptr;
-            foundController = true;
-            break;
-        }
+  for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+    if (myControllers[i] == ctl) {
+      Serial.printf("CALLBACK: Controller disconnected from index=%d\n", i);
+      myControllers[i] = nullptr;
+      foundController = true;
+      break;
     }
+  }
 
-    if (!foundController) {
-        Serial.println("CALLBACK: Controller disconnected, but not found in myControllers");
-    }
+  if (!foundController) {
+    Serial.println("CALLBACK: Controller disconnected, but not found in myControllers");
+  }
 }
 void onConnectedController(ControllerPtr ctl) {
-    bool foundEmptySlot = false;
-    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
-        if (myControllers[i] == nullptr) {
-            Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
-            // Additionally, you can get certain gamepad properties like:
-            // Model, VID, PID, BTAddr, flags, etc.
-            ControllerProperties properties = ctl->getProperties();
-            Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id,
-                           properties.product_id);
-            myControllers[i] = ctl;
-            foundEmptySlot = true;
-            break;
-        }
+  bool foundEmptySlot = false;
+  for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+    if (myControllers[i] == nullptr) {
+      Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
+      // Additionally, you can get certain gamepad properties like:
+      // Model, VID, PID, BTAddr, flags, etc.
+      ControllerProperties properties = ctl->getProperties();
+      Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id,
+                    properties.product_id);
+      myControllers[i] = ctl;
+      foundEmptySlot = true;
+      break;
     }
-    if (!foundEmptySlot) {
-        Serial.println("CALLBACK: Controller connected, but could not found empty slot");
-    }
+  }
+  if (!foundEmptySlot) {
+    Serial.println("CALLBACK: Controller connected, but could not found empty slot");
+  }
 }

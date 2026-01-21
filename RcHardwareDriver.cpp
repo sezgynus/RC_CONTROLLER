@@ -1,16 +1,16 @@
 #include "RcHardwareDriver.h"
 
 // ===== Pin definitions =====
-constexpr int PIN_MOTOR_EN = 25;
-constexpr int PIN_MOTOR_IN1 = 26;
-constexpr int PIN_MOTOR_IN2 = 27;
+constexpr int PIN_MOTOR_EN = 12;
+constexpr int PIN_MOTOR_IN1 = 17;//14;
+constexpr int PIN_MOTOR_IN2 =  5;//15;
 
-constexpr int PIN_STEERING_SERVO = 14;
+constexpr int PIN_STEERING_SERVO = 4;
 
-constexpr int PIN_LIGHT_LEFT = 32;
-constexpr int PIN_LIGHT_RIGHT = 33;
-constexpr int PIN_LIGHT_HEAD = 12;
-constexpr int PIN_LIGHT_BRAKE = 13;
+constexpr int PIN_LIGHT_LEFT =  14;//,17;
+constexpr int PIN_LIGHT_RIGHT = 15;//,5;
+constexpr int PIN_LIGHT_HEAD = 19;
+constexpr int PIN_LIGHT_BRAKE = 20;
 
 // ===== PWM parameters =====
 constexpr int MOTOR_PWM_FREQ = 20000;
@@ -20,8 +20,8 @@ constexpr int SERVO_PWM_FREQ = 50;
 constexpr int SERVO_PWM_RES = 16;  // high resolution
 
 // SG90 pulse width
-constexpr uint32_t SERVO_MIN = 500;
-constexpr uint32_t SERVO_MAX = 2500;
+constexpr uint32_t SERVO_MIN = 900;
+constexpr uint32_t SERVO_MAX = 2100;
 
 void RcHardwareDriver::begin() {
   // Motor pins
