@@ -29,19 +29,19 @@ RcCarController::RcCarController() {
 void RcCarController::setThrottle(float value) {
   throttle = clamp(value, 0.0f, 1.0f);
   lastUpdateMs = millis();
-  Serial.printf("Throttle=%f\n", throttle);
+  //Serial.printf("Throttle=%f\n", throttle);
 }
 
 void RcCarController::setBrake(float value) {
   brake = clamp(value, 0.0f, 1.0f);
   lastUpdateMs = millis();
-  Serial.printf("Brake=%f\n", brake);
+  //Serial.printf("Brake=%f\n", brake);
 }
 
 void RcCarController::setSteering(float value) {
   steering = clamp(value, -1.0f, 1.0f);
   lastUpdateMs = millis();
-  Serial.printf("Steering=%f\n", steering);
+  //Serial.printf("Steering=%f\n", steering);
 }
 
 void RcCarController::setDirection(Direction dir) {
@@ -130,19 +130,42 @@ void RcCarController::applyFailsafe() {
   motorCommand = 0.0f;
   brakeCommand = 1.0f;
 
-  Serial.println("Failsafe!!!");
+  //Serial.println("Failsafe!!!");
   lights.brakeLights = true;
   lights.hazard = true;
 }
 
-void RcCarController::computeMotorOutput() {
-  brakeCommand = brake;
-  lights.brakeLights = (brake > 0.05f);
+void RcCarController::computeMotorOutput()
+{
+    const bool throttleActive = throttle > 0.05f;
+    const bool brakeActive    = brake    > 0.05f;
 
-  float effectiveThrottle = throttle * (1.0f - brake);
-  motorCommand = effectiveThrottle;
+    // ===== CASE 1: FULL BRAKE =====
+    if (throttleActive && brakeActive) {
+        motorCommand = 0.0f;
+        brakeCommand = 1.0f;
+        lights.brakeLights = true;
+        return;
+    }
 
-  if (direction == Direction::REVERSE) {
-    motorCommand = -motorCommand;
-  }
+    // ===== CASE 2: FORWARD =====
+    if (throttleActive) {
+        motorCommand = throttle;   // + forward
+        brakeCommand = 0.0f;
+        lights.brakeLights = false;
+        return;
+    }
+
+    // ===== CASE 3: REVERSE =====
+    if (brakeActive) {
+        motorCommand = -brake;     // - reverse
+        brakeCommand = 0.0f;
+        lights.brakeLights = false;
+        return;
+    }
+
+    // ===== CASE 4: FREEWHEEL =====
+    motorCommand = 0.0f;
+    brakeCommand = 0.0f;
+    lights.brakeLights = false;
 }

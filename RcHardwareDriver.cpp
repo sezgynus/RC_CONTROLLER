@@ -21,7 +21,7 @@ constexpr int SERVO_PWM_RES = 16;  // high resolution
 
 // SG90 pulse width
 constexpr uint32_t SERVO_MIN = 900;
-constexpr uint32_t SERVO_MAX = 2100;
+constexpr uint32_t SERVO_MAX = 2000;
 
 void RcHardwareDriver::begin() {
   // Motor pins

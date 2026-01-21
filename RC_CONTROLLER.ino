@@ -1,3 +1,4 @@
+#include "esp_bt.h"
 #include "RcController.h"
 #include "RcCarController.h"
 #include "RcHardwareDriver.h"
@@ -16,6 +17,17 @@ void setup() {
   Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
   const uint8_t* addr = BP32.localBdAddress();
   Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+  esp_power_level_t min, max;
+  esp_bredr_tx_power_get(&min, &max);
+  Serial.print("Bluetooth TX Power: ");
+  Serial.printf("min %d max %d", min, max);
+  Serial.println(" dBm");
+  esp_bredr_tx_power_set(ESP_PWR_LVL_P9, ESP_PWR_LVL_P9);
+
+  esp_bredr_tx_power_get(&min, &max);
+  Serial.print("New Bluetooth TX Power: ");
+  Serial.printf("min %d max %d", min, max);
+  Serial.println(" dBm");
   BP32.setup(&onConnectedController, &onDisconnectedController);
   BP32.forgetBluetoothKeys();
   BP32.enableVirtualDevice(false);
