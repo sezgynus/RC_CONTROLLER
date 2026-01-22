@@ -67,7 +67,8 @@ void processGamepad(ControllerPtr ctl) {
   controller.setBrake((float)(ctl->brake()) / 1023);
   controller.setSteering((float)(ctl->axisX() - 4) / 512);
   //controller.setHazard(true);
-
+  
+  // L1 -> Left signal
   if (leftSig.rising(ctl->l1())) {
     controller.setLeftSignal(!controller.getLightingState().leftSignal);
   }
@@ -82,7 +83,7 @@ void processGamepad(ControllerPtr ctl) {
     controller.setHazard(!controller.isHazardActive());
   }
 
-  //Gear -> Direction
+  // Gear -> Direction
   if (gear.rising(ctl->a())) {
     RcCarController::Direction current_dir = controller.getDirection();
     if (current_dir == RcCarController::Direction::FORWARD) {
@@ -94,12 +95,12 @@ void processGamepad(ControllerPtr ctl) {
     }
   }
 
-  // Triangle -> Hazard
+  // DPAD_UP -> Shift Up
   if (dpadup.rising(ctl->dpad() & DPAD_UP)) {
     controller.shiftUp();
   }
 
-  // Triangle -> Hazard
+  // DPAD_DOWN -> Shift Down
   if (dpaddn.rising(ctl->dpad() & DPAD_DOWN)) {
     controller.shiftDown();
   }
