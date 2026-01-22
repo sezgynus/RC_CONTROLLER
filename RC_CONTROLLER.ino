@@ -2,9 +2,11 @@
 #include "RcController.h"
 #include "RcCarController.h"
 #include "RcHardwareDriver.h"
+#include "RumbleManager.h"
 RcCarController controller;
 RcHardwareDriver hardware;
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
+RumbleManager rumble;
 
 ButtonEdge leftSig;
 ButtonEdge rightSig;
@@ -92,6 +94,10 @@ void processGamepad(ControllerPtr ctl) {
   if (dpaddn.rising(ctl->dpad() & DPAD_DOWN)) {
     controller.shiftDown();
   }
+
+  rumble.update(controller, ctl);
+
+
   if (ctl->b()) {
     // Turn on the 4 LED. Each bit represents one LED.
     static int led = 0;
