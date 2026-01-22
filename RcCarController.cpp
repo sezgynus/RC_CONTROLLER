@@ -10,6 +10,7 @@ RcCarController::RcCarController() {
   throttle = 0.0f;
   brake = 0.0f;
   steering = 0.0f;
+  trim = 0;
   direction = Direction::FORWARD;
 
   vehicleSpeed = 0.0f;
@@ -44,6 +45,12 @@ void RcCarController::setBrake(float value) {
 
 void RcCarController::setSteering(float value) {
   steering = clamp(value, -1.0f, 1.0f);
+  lastUpdateMs = millis();
+  //Serial.printf("Steering=%f\n", steering);
+}
+
+void RcCarController::setSteeringTrim(int32_t value) {
+  trim = value;
   lastUpdateMs = millis();
   //Serial.printf("Steering=%f\n", steering);
 }
@@ -110,6 +117,10 @@ float RcCarController::getSteeringCommand() const {
   return steering;
 }
 
+int32_t RcCarController::getSteeringTrim() const {
+  return trim;
+}
+
 RcCarController::Direction RcCarController::getDirection() const {
   return direction;
 }
@@ -130,7 +141,7 @@ void RcCarController::applyFailsafe() {
   throttle = 0.0f;
   brake = 1.0f;
   steering = 0.0f;
-
+  trim = 20;
   motorCommand = 0.0f;
   brakeCommand = 1.0f;
 

@@ -9,6 +9,8 @@ void RumbleManager::update(const RcCarController& car, ControllerPtr ctl) {
     return;
 
   float accel = car.getVirtualAcceleration();
+  //Serial.printf("Accel:%f",accel);
+  //Serial.println();
 
   // ===== Launch / patinaj =====
   rumbleLaunchSlip(accel, ctl);
@@ -28,6 +30,7 @@ void RumbleManager::rumbleLaunchSlip(float accel, ControllerPtr ctl) {
     uint8_t strength = (uint8_t)(accel * 40.0f);
     if (strength > 120) strength = 120;
 
+    Serial.println("rumbleLaunchSlip");
     play(ctl, 60, strength / 2, strength);
   }
 }
@@ -38,6 +41,7 @@ void RumbleManager::rumbleBrakeSlip(float accel, ControllerPtr ctl) {
     uint8_t strength = (uint8_t)((-accel) * 45.0f);
     if (strength > 140) strength = 140;
 
+    Serial.println("rumbleBrakeSlip");
     play(ctl, 80, strength, strength / 2);
   }
 }
@@ -45,6 +49,7 @@ void RumbleManager::rumbleBrakeSlip(float accel, ControllerPtr ctl) {
 void RumbleManager::rumbleGearKick(float accel, ControllerPtr ctl) {
   // Sudden torque change
   if (fabs(accel) > 4.0f) {
+    Serial.println("rumbleGearKick");
     play(ctl, 40, 40, 120);
   }
 }

@@ -2,13 +2,13 @@
 
 // ===== Pin definitions =====
 constexpr int PIN_MOTOR_EN = 12;
-constexpr int PIN_MOTOR_IN1 = 17;  //14;
-constexpr int PIN_MOTOR_IN2 = 5;   //15;
+constexpr int PIN_MOTOR_IN1 = 14;
+constexpr int PIN_MOTOR_IN2 = 15;
 
 constexpr int PIN_STEERING_SERVO = 4;
 
-constexpr int PIN_LIGHT_LEFT = 14;   //,17;
-constexpr int PIN_LIGHT_RIGHT = 15;  //,5;
+constexpr int PIN_LIGHT_LEFT = 17;
+constexpr int PIN_LIGHT_RIGHT = 5;
 constexpr int PIN_LIGHT_HEAD = 19;
 constexpr int PIN_LIGHT_BRAKE = 20;
 
@@ -44,7 +44,7 @@ void RcHardwareDriver::begin() {
 
 void RcHardwareDriver::update(const RcCarController& controller) {
   driveMotor(controller.getMotorCommand(), controller.getBrakeCommand());
-  driveSteering(controller.getSteeringCommand());
+  driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim());
   driveLights(controller.getLightingState());
 }
 
@@ -75,11 +75,11 @@ void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd) {
 
 // ================= STEERING =================
 
-void RcHardwareDriver::driveSteering(float steeringCmd) {
+void RcHardwareDriver::driveSteering(float steeringCmd, int32_t trimPulseUs) {
   // Map -1..+1 → pulse width
   float norm = (steeringCmd + 1.0f) * 0.5f;
   uint32_t pulseUs = SERVO_MIN + (SERVO_MAX - SERVO_MIN) * norm;
-
+  pulseUs += trimPulseUs;
   uint32_t duty = (pulseUs * ((1 << SERVO_PWM_RES) - 1)) / 20000;
   ledcWrite(SERVO_PWM_CH, duty);
 }

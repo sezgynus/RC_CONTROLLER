@@ -32,6 +32,7 @@ public:
   void setThrottle(float value);  // 0.0 – 1.0
   void setBrake(float value);     // 0.0 – 1.0
   void setSteering(float value);  // -1.0 – +1.0
+  void setSteeringTrim(int32_t value);
   void setDirection(Direction dir);
 
   void setHeadlights(bool on);
@@ -51,13 +52,14 @@ public:
   float getMotorCommand() const;     // -1.0 … +1.0
   float getBrakeCommand() const;     // 0.0 … 1.0
   float getSteeringCommand() const;  // -1.0 … +1.0
+  int32_t getSteeringTrim() const;
   Direction getDirection() const;
 
   LightingState getLightingState() const;
   bool isFailsafeActive() const;
 
-float getVirtualSpeed() const;
-float getVirtualAcceleration() const;
+  float getVirtualSpeed() const;
+  float getVirtualAcceleration() const;
 
   // ===== Gear / Vites =====
   void shiftUp();
@@ -71,6 +73,7 @@ private:
   float throttle;
   float brake;
   float steering;
+  int32_t trim;
   Direction direction;
 
   // Feedback

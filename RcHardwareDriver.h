@@ -12,7 +12,7 @@ public:
 
 private:
   void driveMotor(float motorCmd, float brakeCmd);
-  void driveSteering(float steeringCmd);
+  void driveSteering(float steeringCmd, int32_t trimPulseUs);
   void driveLights(const RcCarController::LightingState& lights);
 
   bool signalBlinkState = false;

@@ -15,12 +15,11 @@ ButtonEdge headlights;
 ButtonEdge gear;
 ButtonEdge dpadup;
 ButtonEdge dpaddn;
+ButtonEdge dpadleft;
+ButtonEdge dpadright;
 
 void setup() {
   Serial.begin(115200);
-  Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
-  const uint8_t* addr = BP32.localBdAddress();
-  Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
   esp_power_level_t min, max;
   esp_bredr_tx_power_get(&min, &max);
   Serial.print("Bluetooth TX Power: ");
@@ -32,6 +31,10 @@ void setup() {
   Serial.print("New Bluetooth TX Power: ");
   Serial.printf("min %d max %d", min, max);
   Serial.println(" dBm");
+  Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
+  const uint8_t* addr = BP32.localBdAddress();
+  Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
   BP32.setup(&onConnectedController, &onDisconnectedController);
   BP32.forgetBluetoothKeys();
   BP32.enableVirtualDevice(false);
@@ -93,6 +96,18 @@ void processGamepad(ControllerPtr ctl) {
   // DPAD_DOWN -> Shift Down
   if (dpaddn.rising(ctl->dpad() & DPAD_DOWN)) {
     controller.shiftDown();
+  }
+
+  // DPAD_RIGHT -> Trim++
+  if (dpadright.rising(ctl->dpad() & DPAD_RIGHT)) {
+    controller.setSteeringTrim(controller.getSteeringTrim() + 5);
+    Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+  }
+
+  // DPAD_LEFT -> Trim--
+  if (dpadleft.rising(ctl->dpad() & DPAD_LEFT)) {
+    controller.setSteeringTrim(controller.getSteeringTrim() - 5);
+    Serial.printf("Trim=%d\n", controller.getSteeringTrim());
   }
 
   rumble.update(controller, ctl);
