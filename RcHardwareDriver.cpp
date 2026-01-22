@@ -2,13 +2,13 @@
 
 // ===== Pin definitions =====
 constexpr int PIN_MOTOR_EN = 12;
-constexpr int PIN_MOTOR_IN1 = 17;//14;
-constexpr int PIN_MOTOR_IN2 =  5;//15;
+constexpr int PIN_MOTOR_IN1 = 17;  //14;
+constexpr int PIN_MOTOR_IN2 = 5;   //15;
 
 constexpr int PIN_STEERING_SERVO = 4;
 
-constexpr int PIN_LIGHT_LEFT =  14;//,17;
-constexpr int PIN_LIGHT_RIGHT = 15;//,5;
+constexpr int PIN_LIGHT_LEFT = 14;   //,17;
+constexpr int PIN_LIGHT_RIGHT = 15;  //,5;
 constexpr int PIN_LIGHT_HEAD = 19;
 constexpr int PIN_LIGHT_BRAKE = 20;
 
