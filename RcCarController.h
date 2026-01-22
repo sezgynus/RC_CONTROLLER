@@ -56,6 +56,9 @@ public:
   LightingState getLightingState() const;
   bool isFailsafeActive() const;
 
+float getVirtualSpeed() const;
+float getVirtualAcceleration() const;
+
   // ===== Gear / Vites =====
   void shiftUp();
   void shiftDown();
@@ -83,6 +86,11 @@ private:
   uint32_t lastUpdateMs;
   uint32_t failsafeTimeoutMs;
   bool failsafeActive;
+
+  // ===== Virtual dynamics =====
+  float virtualSpeed;  // 0.0 … 1.0
+  float virtualAccel;  // -1.0 … +1.0
+  uint32_t lastDynMs;
 
   // Gear
   Gear gearLevel;

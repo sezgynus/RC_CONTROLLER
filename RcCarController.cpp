@@ -19,6 +19,10 @@ RcCarController::RcCarController() {
 
   lights = { false, false, false, false, false };
 
+  virtualSpeed = 0.0f;
+  virtualAccel = 0.0f;
+  lastDynMs = millis();
+
   lastUpdateMs = 0;
   failsafeTimeoutMs = 500;
   failsafeActive = false;
@@ -135,41 +139,70 @@ void RcCarController::applyFailsafe() {
   lights.hazard = true;
 }
 
-void RcCarController::computeMotorOutput()
-{
-    const bool throttleActive = throttle > 0.05f;
-    const bool brakeActive    = brake    > 0.05f;
+void RcCarController::computeMotorOutput() {
+  const bool throttleActive = throttle > 0.05f;
+  const bool brakeActive = brake > 0.05f;
 
-    float maxMotor = gearMaxMotor[gearLevel];
+  float maxMotor = gearMaxMotor[gearLevel];
 
-    // ===== CASE 1: FULL BRAKE =====
-    if (throttleActive && brakeActive) {
-        motorCommand = 0.0f;
-        brakeCommand = 1.0f;
-        lights.brakeLights = true;
-        return;
-    }
+  // ===== TIME BASE =====
+  uint32_t now = millis();
+  float dt = (now - lastDynMs) * 0.001f;  // seconds
+  if (dt <= 0.0f || dt > 0.1f) dt = 0.01f;
+  lastDynMs = now;
 
-    // ===== CASE 2: FORWARD =====
-    if (throttleActive) {
-        motorCommand = throttle * maxMotor;   // scaled by gear
-        brakeCommand = 0.0f;
-        lights.brakeLights = false;
-        return;
-    }
+  float prevSpeed = virtualSpeed;
 
-    // ===== CASE 3: REVERSE =====
-    if (brakeActive) {
-        motorCommand = -brake * maxMotor;     // scaled by gear
-        brakeCommand = 0.0f;
-        lights.brakeLights = false;
-        return;
-    }
+  // ===== CASE 1: FULL BRAKE =====
+  if (throttleActive && brakeActive) {
+    motorCommand = 0.0f;
+    brakeCommand = 1.0f;
+    lights.brakeLights = true;
 
-    // ===== CASE 4: FREEWHEEL =====
+    // strong decel
+    virtualSpeed -= 4.0f * dt;
+  }
+  // ===== CASE 2: FORWARD =====
+  else if (throttleActive) {
+    motorCommand = throttle * maxMotor;
+    brakeCommand = 0.0f;
+    lights.brakeLights = false;
+
+    virtualSpeed += motorCommand * 2.0f * dt;
+  }
+  // ===== CASE 3: REVERSE =====
+  else if (brakeActive) {
+    motorCommand = -brake * maxMotor;
+    brakeCommand = 0.0f;
+    lights.brakeLights = false;
+
+    virtualSpeed += (-motorCommand) * 2.0f * dt;
+  }
+  // ===== CASE 4: FREEWHEEL =====
+  else {
     motorCommand = 0.0f;
     brakeCommand = 0.0f;
     lights.brakeLights = false;
+
+    // rolling resistance
+    virtualSpeed -= 0.8f * dt;
+  }
+
+  // ===== CLAMP SPEED =====
+  if (virtualSpeed < 0.0f) virtualSpeed = 0.0f;
+  if (virtualSpeed > 1.0f) virtualSpeed = 1.0f;
+
+  // ===== ACCELERATION =====
+  virtualAccel = (virtualSpeed - prevSpeed) / dt;
+  if (virtualAccel > 5.0f) virtualAccel = 5.0f;
+  if (virtualAccel < -5.0f) virtualAccel = -5.0f;
+}
+float RcCarController::getVirtualSpeed() const {
+  return virtualSpeed;
+}
+
+float RcCarController::getVirtualAcceleration() const {
+  return virtualAccel;
 }
 void RcCarController::shiftUp() {
   if (gearLevel < Gear::GEAR4) {
