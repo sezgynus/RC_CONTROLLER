@@ -1,7 +1,5 @@
 #include "RcHardwareDriver.h"
-#define BRAKE_PWM_START   200   // frene ilk basıldığında
-#define BRAKE_PWM_HOLD    135   // normal frenleme
-#define BRAKE_RAMP_TIME   500   // ms – düşüş süresi
+
 // ===== Pin definitions =====
 constexpr int PIN_MOTOR_EN = 12;
 constexpr int PIN_MOTOR_IN1 = 14;
@@ -45,70 +43,73 @@ void RcHardwareDriver::begin() {
 }
 
 void RcHardwareDriver::update(const RcCarController& controller) {
-  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand());
+  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear());
   driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim());
   driveLights(controller.getLightingState());
 }
 
 // ================= MOTOR =================
 
-void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd)
-{
-    static bool before_brake_dir = true;
-    static uint32_t brakeStartMs = 0;
-    static bool braking = false;
+void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear) {
+  static bool before_brake_dir = true;
+  static uint32_t brakeStartMs = 0;
+  static bool braking = false;
 
-    uint32_t now = millis();
+  uint32_t now = millis();
 
-    // ===================== BRAKE =====================
-    if (brakeCmd > 0.05f)
-    {
-        if (!braking) {
-            braking = true;
-            brakeStartMs = now;
-        }
-
-        // Yön: son hareket yönüne ters
-        if (before_brake_dir) {
-            digitalWrite(PIN_MOTOR_IN1, LOW);
-            digitalWrite(PIN_MOTOR_IN2, HIGH);
-        } else {
-            digitalWrite(PIN_MOTOR_IN1, HIGH);
-            digitalWrite(PIN_MOTOR_IN2, LOW);
-        }
-
-        // Zaman bazlı PWM ramp
-        uint32_t t = now - brakeStartMs;
-        uint8_t pwm;
-
-        if (t < BRAKE_RAMP_TIME) {
-            float k = 1.0f - ((float)t / (float)BRAKE_RAMP_TIME);
-            pwm = BRAKE_PWM_HOLD +
-                  (uint8_t)((BRAKE_PWM_START - BRAKE_PWM_HOLD) * k);
-        } else {
-            pwm = BRAKE_PWM_HOLD;
-        }
-
-        ledcWrite(MOTOR_PWM_CH, pwm);
-        return;
+  // ===================== BRAKE =====================
+  if (brakeCmd > 0.05f) {
+    if (!braking) {
+      braking = true;
+      brakeStartMs = now;
     }
 
-    braking = false;
+    // Mevcut vites (0–3)
+    uint8_t gear = currentGear;
+    if (gear > 3) gear = 3;
 
-    // ===================== DRIVE =====================
-    if (motorCmd >= 0.0f) {
-        digitalWrite(PIN_MOTOR_IN1, HIGH);
-        digitalWrite(PIN_MOTOR_IN2, LOW);
-        before_brake_dir = true;
+    BrakeProfile& bp = brakeTable[gear];
+
+    // Yön: son hareket yönüne ters
+    if (before_brake_dir) {
+      digitalWrite(PIN_MOTOR_IN1, LOW);
+      digitalWrite(PIN_MOTOR_IN2, HIGH);
     } else {
-        digitalWrite(PIN_MOTOR_IN1, LOW);
-        digitalWrite(PIN_MOTOR_IN2, HIGH);
-        motorCmd = -motorCmd;
-        before_brake_dir = false;
+      digitalWrite(PIN_MOTOR_IN1, HIGH);
+      digitalWrite(PIN_MOTOR_IN2, LOW);
     }
 
-    uint8_t pwm = (uint8_t)(motorCmd * 255.0f);
+    // PWM ramp
+    uint32_t t = now - brakeStartMs;
+    uint8_t pwm;
+
+    if (t < BRAKE_RAMP_TIME) {
+      float k = 1.0f - ((float)t / (float)BRAKE_RAMP_TIME);
+      pwm = bp.pwmHold + (uint8_t)((bp.pwmStart - bp.pwmHold) * k);
+    } else {
+      pwm = bp.pwmHold;
+    }
+
     ledcWrite(MOTOR_PWM_CH, pwm);
+    return;
+  }
+
+  braking = false;
+
+  // ===================== DRIVE =====================
+  if (motorCmd >= 0.0f) {
+    digitalWrite(PIN_MOTOR_IN1, HIGH);
+    digitalWrite(PIN_MOTOR_IN2, LOW);
+    before_brake_dir = true;
+  } else {
+    digitalWrite(PIN_MOTOR_IN1, LOW);
+    digitalWrite(PIN_MOTOR_IN2, HIGH);
+    motorCmd = -motorCmd;
+    before_brake_dir = false;
+  }
+
+  uint8_t pwm = (uint8_t)(motorCmd * 255.0f);
+  ledcWrite(MOTOR_PWM_CH, pwm);
 }
 
 
