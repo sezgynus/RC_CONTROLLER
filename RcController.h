@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Bluepad32.h>
+#include "OTA.h"
 
 struct ButtonEdge {
   bool last = false;

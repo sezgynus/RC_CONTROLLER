@@ -42,7 +42,7 @@ void RumbleManager::rumbleBrakeSlip(float accel, ControllerPtr ctl) {
     if (strength > 140) strength = 140;
 
     Serial.println("rumbleBrakeSlip");
-    play(ctl, 80, 0,strength);
+    play(ctl, 80, 0, strength);
   }
 }
 

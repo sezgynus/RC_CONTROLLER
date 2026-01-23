@@ -201,7 +201,7 @@ void RcCarController::computeMotorOutput() {
 
   // ===== CLAMP SPEED =====
   if (virtualSpeed < 0.0f) virtualSpeed = 0.0f;
-  if (virtualSpeed > maxMotor*500) virtualSpeed = maxMotor*500;
+  if (virtualSpeed > maxMotor * 500) virtualSpeed = maxMotor * 500;
 
   // ===== ACCELERATION =====
   virtualAccel = (virtualSpeed - prevSpeed) / dt;

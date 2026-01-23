@@ -43,14 +43,14 @@ void RcHardwareDriver::begin() {
 }
 
 void RcHardwareDriver::update(const RcCarController& controller) {
-  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear());
+  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed());
   driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim());
   driveLights(controller.getLightingState());
 }
 
 // ================= MOTOR =================
 
-void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear) {
+void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed) {
   static bool before_brake_dir = true;
   static uint32_t brakeStartMs = 0;
   static bool braking = false;
@@ -83,7 +83,7 @@ void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarControlle
     uint32_t t = now - brakeStartMs;
     uint8_t pwm;
 
-    if (t < BRAKE_RAMP_TIME) {
+    if ((t < BRAKE_RAMP_TIME) & (current_speed > 10)) {
       float k = 1.0f - ((float)t / (float)BRAKE_RAMP_TIME);
       pwm = bp.pwmHold + (uint8_t)((bp.pwmStart - bp.pwmHold) * k);
     } else {
