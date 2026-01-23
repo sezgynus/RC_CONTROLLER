@@ -139,11 +139,11 @@ void RcCarController::applyFailsafe() {
   failsafeActive = true;
 
   throttle = 0.0f;
-  brake = 1.0f;
+  brake = 0.0f;
   steering = 0.0f;
   trim = 20;
   motorCommand = 0.0f;
-  brakeCommand = 1.0f;
+  brakeCommand = 0.0f;
 
   //Serial.println("Failsafe!!!");
   lights.brakeLights = true;
@@ -171,7 +171,7 @@ void RcCarController::computeMotorOutput() {
     lights.brakeLights = true;
 
     // strong decel
-    virtualSpeed -= 4.0f * dt;
+    virtualSpeed -= 10.0f * dt;
   }
   // ===== CASE 2: FORWARD =====
   else if (throttleActive) {
@@ -179,7 +179,7 @@ void RcCarController::computeMotorOutput() {
     brakeCommand = 0.0f;
     lights.brakeLights = false;
 
-    virtualSpeed += motorCommand * 2.0f * dt;
+    virtualSpeed += motorCommand * 5.0f * dt;
   }
   // ===== CASE 3: REVERSE =====
   else if (brakeActive) {
@@ -187,7 +187,7 @@ void RcCarController::computeMotorOutput() {
     brakeCommand = 0.0f;
     lights.brakeLights = false;
 
-    virtualSpeed += (-motorCommand) * 2.0f * dt;
+    virtualSpeed += (-motorCommand) * 5.0f * dt;
   }
   // ===== CASE 4: FREEWHEEL =====
   else {
@@ -196,17 +196,30 @@ void RcCarController::computeMotorOutput() {
     lights.brakeLights = false;
 
     // rolling resistance
-    virtualSpeed -= 0.8f * dt;
+    virtualSpeed -= 1.6f * dt;
   }
 
   // ===== CLAMP SPEED =====
   if (virtualSpeed < 0.0f) virtualSpeed = 0.0f;
-  if (virtualSpeed > 1.0f) virtualSpeed = 1.0f;
+  if (virtualSpeed > maxMotor*500) virtualSpeed = maxMotor*500;
 
   // ===== ACCELERATION =====
   virtualAccel = (virtualSpeed - prevSpeed) / dt;
   if (virtualAccel > 5.0f) virtualAccel = 5.0f;
   if (virtualAccel < -5.0f) virtualAccel = -5.0f;
+  // static uint32_t lastPrintMs = 0;
+  // if (now - lastPrintMs > 100) {  // 10 Hz
+  //   lastPrintMs = now;
+  //   Serial.printf(
+  //     "[PHY] dt=%.3f | thr=%.2f brk=%.2f | motor=%.2f | speed=%.3f | accel=%.3f | gear=%d\n",
+  //     dt,
+  //     throttle,
+  //     brake,
+  //     motorCommand,
+  //     virtualSpeed,
+  //     virtualAccel,
+  //     gearLevel);
+  // }
 }
 float RcCarController::getVirtualSpeed() const {
   return virtualSpeed;

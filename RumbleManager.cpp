@@ -31,7 +31,7 @@ void RumbleManager::rumbleLaunchSlip(float accel, ControllerPtr ctl) {
     if (strength > 120) strength = 120;
 
     Serial.println("rumbleLaunchSlip");
-    play(ctl, 60, strength / 2, strength);
+    play(ctl, 60, 0, strength);
   }
 }
 
@@ -42,15 +42,15 @@ void RumbleManager::rumbleBrakeSlip(float accel, ControllerPtr ctl) {
     if (strength > 140) strength = 140;
 
     Serial.println("rumbleBrakeSlip");
-    play(ctl, 80, strength, strength / 2);
+    play(ctl, 80, 0,strength);
   }
 }
 
 void RumbleManager::rumbleGearKick(float accel, ControllerPtr ctl) {
   // Sudden torque change
-  if (fabs(accel) > 4.0f) {
+  if (fabs(accel) > 4.9f) {
     Serial.println("rumbleGearKick");
-    play(ctl, 40, 40, 120);
+    play(ctl, 40, 255, 0);
   }
 }
 
