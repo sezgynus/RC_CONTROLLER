@@ -3,6 +3,7 @@
 #include "RcCarController.h"
 #include "RcHardwareDriver.h"
 #include "RumbleManager.h"
+#include <uni.h>
 RcCarController controller;
 RcHardwareDriver hardware;
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
@@ -18,19 +19,28 @@ ButtonEdge dpaddn;
 ButtonEdge dpadleft;
 ButtonEdge dpadright;
 
-void setup() {
-  Serial.begin(115200);
+void set_max_bt_tx_power() {
+  uni_bt_bredr_scan_stop();
+  uni_bt_bredr_set_enabled(false);
+  if (uni_bt_bredr_is_enabled()) Serial.println("Bt enabled");
+  else Serial.println("Bt not enabled");
   esp_power_level_t min, max;
   esp_bredr_tx_power_get(&min, &max);
   Serial.print("Bluetooth TX Power: ");
   Serial.printf("min %d max %d", min, max);
   Serial.println(" dBm");
+  esp_bt_controller_disable();
+  esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);
   esp_bredr_tx_power_set(ESP_PWR_LVL_P9, ESP_PWR_LVL_P9);
 
   esp_bredr_tx_power_get(&min, &max);
   Serial.print("New Bluetooth TX Power: ");
   Serial.printf("min %d max %d", min, max);
   Serial.println(" dBm");
+}
+
+void setup() {
+  Serial.begin(115200);
   Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
   const uint8_t* addr = BP32.localBdAddress();
   Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
