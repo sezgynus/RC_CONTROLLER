@@ -2,6 +2,7 @@
 #define RC_CAR_CONTROLLER_H
 
 #include "RcController.h"
+#include <Preferences.h>
 
 class RcCarController {
 public:
@@ -27,6 +28,7 @@ public:
   };
 
   RcCarController();
+  void begin();
 
   // ===== Input interface =====
   void setThrottle(float value);  // 0.0 – 1.0
@@ -67,8 +69,10 @@ public:
   Gear getGear() const {
     return gearLevel;
   }
-
+  float gearMaxMotor[NUM_GEARS] = { 0.65f, 0.75f, 0.85f, 1.0f };  // vites başına max motor scaling
 private:
+  Preferences prefs;
+
   // Inputs
   float throttle;
   float brake;
@@ -97,7 +101,6 @@ private:
 
   // Gear
   Gear gearLevel;
-  float gearMaxMotor[NUM_GEARS] = { 0.65f, 0.75f, 0.85f, 1.0f };  // vites başına max motor scaling
 
   // Internal
   void applyFailsafe();

@@ -18,6 +18,7 @@ ButtonEdge dpadup;
 ButtonEdge dpaddn;
 ButtonEdge dpadleft;
 ButtonEdge dpadright;
+ButtonEdge share;
 
 OTA ota;
 
@@ -50,12 +51,15 @@ void setup() {
   Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 
   memcpy(mac, addr, sizeof(mac));
-  ota.begin("RcController", "RcController", "12345678");
-
+  //ota.begin("RcController", "RcController", "12345678");
+  uni_bt_allowlist_init();
+  uni_bt_allowlist_set_enabled(true);
+  //uni_bt_enable_new_connections_safe(true);
   BP32.setup(&onConnectedController, &onDisconnectedController);
-  BP32.forgetBluetoothKeys();
+  //BP32.forgetBluetoothKeys();
   BP32.enableVirtualDevice(false);
 
+  controller.begin();
   hardware.begin();
 }
 
@@ -125,6 +129,13 @@ void processGamepad(ControllerPtr ctl) {
   if (dpadleft.rising(ctl->dpad() & DPAD_LEFT)) {
     controller.setSteeringTrim(controller.getSteeringTrim() - 5);
     Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+  }
+  if (share.rising(ctl->miscButtons() & 0x02)) {
+    if (ota.isActive()) {
+      ota.stop();
+    } else {
+      ota.begin("RcController", "RcController", "12345678");
+    }
   }
 
   rumble.update(controller, ctl);
@@ -202,6 +213,8 @@ void onConnectedController(ControllerPtr ctl) {
       ControllerProperties properties = ctl->getProperties();
       Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id,
                     properties.product_id);
+      uni_bt_allowlist_add_addr(properties.btaddr);
+      uni_bt_allowlist_set_enabled(true);
       myControllers[i] = ctl;
       foundEmptySlot = true;
       break;

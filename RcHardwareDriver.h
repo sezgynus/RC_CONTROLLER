@@ -11,7 +11,7 @@ public:
   void update(const RcCarController& controller);
 
 private:
-  void driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed);
+  void driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, const RcCarController& controller);
   void driveSteering(float steeringCmd, int32_t trimPulseUs);
   void driveLights(const RcCarController::LightingState& lights);
 
@@ -21,14 +21,14 @@ private:
     uint8_t pwmHold;   // tutma
   };
 
-  static constexpr uint32_t BRAKE_RAMP_TIME = 500;  // ms
+  static constexpr uint32_t BRAKE_RAMP_TIME = 2000;  // ms
 
   // 1–4 vites için fren karakteristiği
   BrakeProfile brakeTable[4] = {
     { 150, 110 },  // 1. vites
     { 165, 120 },  // 2. vites
     { 180, 130 },  // 3. vites
-    { 200, 145 }   // 4. vites
+    { 200, 140 }   // 4. vites
   };
 
   bool signalBlinkState = false;

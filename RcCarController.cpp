@@ -1,5 +1,4 @@
 #include "RcCarController.h"
-
 static float clamp(float v, float minV, float maxV) {
   if (v < minV) return minV;
   if (v > maxV) return maxV;
@@ -7,10 +6,10 @@ static float clamp(float v, float minV, float maxV) {
 }
 
 RcCarController::RcCarController() {
+  Serial.begin(115200);
   throttle = 0.0f;
   brake = 0.0f;
   steering = 0.0f;
-  trim = 0;
   direction = Direction::FORWARD;
 
   vehicleSpeed = 0.0f;
@@ -27,6 +26,12 @@ RcCarController::RcCarController() {
   lastUpdateMs = 0;
   failsafeTimeoutMs = 500;
   failsafeActive = false;
+}
+void RcCarController::begin()
+{
+  prefs.begin("rc_cfg", false);
+  trim = prefs.getInt("steer_trim", 0);  
+  Serial.printf("Saved Trim=%d\n", trim);
 }
 
 // ================= INPUT =================
@@ -51,6 +56,10 @@ void RcCarController::setSteering(float value) {
 
 void RcCarController::setSteeringTrim(int32_t value) {
   trim = value;
+  if (prefs.getInt("steer_trim", 0) != trim) {
+    bool ok = prefs.putInt("steer_trim", trim);
+    (void)ok;
+  }
   lastUpdateMs = millis();
   //Serial.printf("Steering=%f\n", steering);
 }
@@ -141,7 +150,6 @@ void RcCarController::applyFailsafe() {
   throttle = 0.0f;
   brake = 0.0f;
   steering = 0.0f;
-  trim = 20;
   motorCommand = 0.0f;
   brakeCommand = 0.0f;
 

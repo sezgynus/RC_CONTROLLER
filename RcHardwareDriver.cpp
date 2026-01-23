@@ -43,14 +43,14 @@ void RcHardwareDriver::begin() {
 }
 
 void RcHardwareDriver::update(const RcCarController& controller) {
-  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed());
+  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed(),controller);
   driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim());
   driveLights(controller.getLightingState());
 }
 
 // ================= MOTOR =================
 
-void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed) {
+void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, const RcCarController& controller) {
   static bool before_brake_dir = true;
   static uint32_t brakeStartMs = 0;
   static bool braking = false;
@@ -69,7 +69,6 @@ void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarControlle
     if (gear > 3) gear = 3;
 
     BrakeProfile& bp = brakeTable[gear];
-
     // Yön: son hareket yönüne ters
     if (before_brake_dir) {
       digitalWrite(PIN_MOTOR_IN1, LOW);
@@ -108,8 +107,13 @@ void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarControlle
     before_brake_dir = false;
   }
 
-  uint8_t pwm = (uint8_t)(motorCmd * 255.0f);
-  ledcWrite(MOTOR_PWM_CH, pwm);
+  if (motorCmd != 0) {
+    uint8_t pwm = (uint8_t)(motorCmd * 255.0f);
+    //Serial.printf("PWM=%d", pwm);
+    pwm = map(pwm, 0, (255*(controller.gearMaxMotor[currentGear])), 127, (255*(controller.gearMaxMotor[currentGear])));
+    //Serial.printf("Mapped PWM=%d\n", pwm);
+    ledcWrite(MOTOR_PWM_CH, pwm);
+  } else ledcWrite(MOTOR_PWM_CH, 0);
 }
 
 
