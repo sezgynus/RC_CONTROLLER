@@ -19,6 +19,10 @@ ButtonEdge dpaddn;
 ButtonEdge dpadleft;
 ButtonEdge dpadright;
 
+OTA ota;
+
+uint8_t mac[6];
+
 void set_max_bt_tx_power() {
   uni_bt_bredr_scan_stop();
   uni_bt_bredr_set_enabled(false);
@@ -44,6 +48,9 @@ void setup() {
   Serial.printf("Firmware: %s\n", BP32.firmwareVersion());
   const uint8_t* addr = BP32.localBdAddress();
   Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+  memcpy(mac, addr, sizeof(mac));
+  ota.begin("RcController", "RcController", "12345678");
 
   BP32.setup(&onConnectedController, &onDisconnectedController);
   BP32.forgetBluetoothKeys();
