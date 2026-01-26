@@ -43,8 +43,8 @@ void RcHardwareDriver::begin() {
 }
 
 void RcHardwareDriver::update(const RcCarController& controller) {
-  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed(),controller);
-  driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim());
+  driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed(), controller);
+  driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim(), true, 250);
   driveLights(controller.getLightingState());
 }
 
@@ -110,7 +110,7 @@ void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarControlle
   if (motorCmd != 0) {
     uint8_t pwm = (uint8_t)(motorCmd * 255.0f);
     //Serial.printf("PWM=%d", pwm);
-    pwm = map(pwm, 0, (255*(controller.gearMaxMotor[currentGear])), 127, (255*(controller.gearMaxMotor[currentGear])));
+    pwm = map(pwm, 0, (255 * (controller.gearMaxMotor[currentGear])), 127, (255 * (controller.gearMaxMotor[currentGear])));
     //Serial.printf("Mapped PWM=%d\n", pwm);
     ledcWrite(MOTOR_PWM_CH, pwm);
   } else ledcWrite(MOTOR_PWM_CH, 0);
@@ -119,13 +119,43 @@ void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarControlle
 
 // ================= STEERING =================
 
-void RcHardwareDriver::driveSteering(float steeringCmd, int32_t trimPulseUs) {
+void RcHardwareDriver::driveSteering(float steeringCmd, int32_t trimPulseUs, bool releaseAfterMove, uint32_t holdTimeMs) {
+  static uint32_t lastCommandMs = 0;
+  static uint32_t lastDuty = 0;
+  static bool holding = false;
+
+  uint32_t now = millis();
+
   // Map -1..+1 → pulse width
   float norm = (steeringCmd + 1.0f) * 0.5f;
   uint32_t pulseUs = SERVO_MIN + (SERVO_MAX - SERVO_MIN) * norm;
   pulseUs += trimPulseUs;
-  uint32_t duty = (pulseUs * ((1 << SERVO_PWM_RES) - 1)) / 20000;
-  ledcWrite(SERVO_PWM_CH, duty);
+
+  uint32_t duty =
+    (pulseUs * ((1 << SERVO_PWM_RES) - 1)) / 20000;
+
+  // ===== PWM serbest bırakma kapalıysa =====
+  if (!releaseAfterMove) {
+    ledcWrite(SERVO_PWM_CH, duty);
+    lastDuty = duty;
+    holding = false;
+    return;
+  }
+
+  // ===== Yeni açı geldiyse =====
+  if (duty != lastDuty) {
+    ledcWrite(SERVO_PWM_CH, duty);
+    lastDuty = duty;
+    lastCommandMs = now;
+    holding = true;
+    return;
+  }
+
+  // ===== Tutma süresi dolduysa =====
+  if (holding && (now - lastCommandMs >= holdTimeMs)) {
+    ledcWrite(SERVO_PWM_CH, 0);  // servo serbest
+    holding = false;
+  }
 }
 
 // ================= LIGHTS =================
