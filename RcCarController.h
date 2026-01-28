@@ -13,7 +13,9 @@ public:
 
   struct LightingState {
     bool headlights;
+    bool highBeam;
     bool brakeLights;
+    bool reverseLight;
     bool leftSignal;
     bool rightSignal;
     bool hazard;
@@ -88,8 +90,8 @@ private:
   float brakeCommand;
 
   LightingState lights;
-bool leftSignalArmed  = false;
-bool rightSignalArmed = false;
+  bool leftSignalArmed = false;
+  bool rightSignalArmed = false;
 
 
 

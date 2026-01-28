@@ -10,7 +10,9 @@ constexpr int PIN_STEERING_SERVO = 4;
 constexpr int PIN_LIGHT_LEFT = 5;
 constexpr int PIN_LIGHT_RIGHT = 17;
 constexpr int PIN_LIGHT_HEAD = 33;
-constexpr int PIN_LIGHT_BRAKE = 20;
+constexpr int PIN_LIGHT_BRAKE = 32;
+constexpr int PIN_LIGHT_HIGHBEAM = 2;
+constexpr int PIN_LIGHT_REVERSE = 0;
 
 // ===== PWM parameters =====
 constexpr int MOTOR_PWM_FREQ = 20000;
@@ -40,6 +42,8 @@ void RcHardwareDriver::begin() {
   pinMode(PIN_LIGHT_RIGHT, OUTPUT);
   pinMode(PIN_LIGHT_HEAD, OUTPUT);
   pinMode(PIN_LIGHT_BRAKE, OUTPUT);
+  pinMode(PIN_LIGHT_HIGHBEAM, OUTPUT);
+  pinMode(PIN_LIGHT_REVERSE, OUTPUT);
 }
 
 void RcHardwareDriver::update(const RcCarController& controller) {
@@ -192,4 +196,6 @@ void RcHardwareDriver::driveLights(const RcCarController::LightingState& lights)
   // Steady lights
   digitalWrite(PIN_LIGHT_HEAD, lights.headlights ? LOW : HIGH);
   digitalWrite(PIN_LIGHT_BRAKE, lights.brakeLights ? LOW : HIGH);
+  digitalWrite(PIN_LIGHT_HIGHBEAM, lights.highBeam ? LOW : HIGH);  
+  digitalWrite(PIN_LIGHT_REVERSE,  lights.reverseLight ? LOW : HIGH);
 }
