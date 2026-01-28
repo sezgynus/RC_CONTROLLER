@@ -40,6 +40,9 @@ public:
   void setDirection(Direction dir);
 
   void setHeadlights(bool on);
+  void setHighBeam(bool on);
+  void setBrakeLights(bool on);
+  void setReverseLight(bool on);
   void setLeftSignal(bool on);
   void setRightSignal(bool on);
   void setHazard(bool on);

@@ -46,7 +46,7 @@ void RcHardwareDriver::begin() {
   pinMode(PIN_LIGHT_REVERSE, OUTPUT);
 }
 
-void RcHardwareDriver::update(const RcCarController& controller) {
+void RcHardwareDriver::update(RcCarController& controller) {
   driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed(), controller);
   driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim(), true, 250);
   driveLights(controller.getLightingState());
@@ -54,13 +54,17 @@ void RcHardwareDriver::update(const RcCarController& controller) {
 
 // ================= MOTOR =================
 
-void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, const RcCarController& controller) {
+void RcHardwareDriver::driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, RcCarController& controller) {
   static bool before_brake_dir = true;
   static uint32_t brakeStartMs = 0;
   static bool braking = false;
 
   uint32_t now = millis();
-
+  // ===== LIGHT LOGIC =====
+  
+  controller.setBrakeLights(brakeCmd > 0.05f);
+  bool reversing = (motorCmd < -0.01f) || (brakeCmd > 0.05f && before_brake_dir == false);
+  controller.setReverseLight(reversing);
   // ===================== BRAKE =====================
   if (brakeCmd > 0.05f) {
     if (!braking) {
@@ -196,6 +200,6 @@ void RcHardwareDriver::driveLights(const RcCarController::LightingState& lights)
   // Steady lights
   digitalWrite(PIN_LIGHT_HEAD, lights.headlights ? LOW : HIGH);
   digitalWrite(PIN_LIGHT_BRAKE, lights.brakeLights ? LOW : HIGH);
-  digitalWrite(PIN_LIGHT_HIGHBEAM, lights.highBeam ? LOW : HIGH);  
-  digitalWrite(PIN_LIGHT_REVERSE,  lights.reverseLight ? LOW : HIGH);
+  digitalWrite(PIN_LIGHT_HIGHBEAM, lights.highBeam ? LOW : HIGH);
+  digitalWrite(PIN_LIGHT_REVERSE, lights.reverseLight ? LOW : HIGH);
 }

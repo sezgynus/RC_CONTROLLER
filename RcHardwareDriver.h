@@ -8,10 +8,10 @@ class RcHardwareDriver {
 public:
   void begin();
 
-  void update(const RcCarController& controller);
+  void update(RcCarController& controller);
 
 private:
-  void driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, const RcCarController& controller);
+  void driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, RcCarController& controller);
   void driveSteering(float steeringCmd, int32_t trimPulseUs, bool releaseAfterMove = false, uint32_t holdTimeMs = 200);
   void driveLights(const RcCarController::LightingState& lights);
 

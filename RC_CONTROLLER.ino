@@ -22,6 +22,7 @@ ButtonEdge dpadright;
 ButtonEdge share;
 
 OTA ota;
+bool saved_high_beam;
 
 uint8_t mac[6];
 
@@ -97,18 +98,27 @@ void processGamepad(ControllerPtr ctl) {
   // X -> Headlights
   if (headlights.rising(ctl->x())) {
     Serial.println("X Pressed");
-    controller.setHeadlights(!controller.getLightingState().headlights);
+    if (!controller.getLightingState().headlights & !controller.getLightingState().highBeam) {
+      controller.setHeadlights(true);
+    } else if (controller.getLightingState().headlights & !controller.getLightingState().highBeam) {
+      controller.setHighBeam(true);
+    }
+    else if (controller.getLightingState().headlights & controller.getLightingState().highBeam) {
+      controller.setHighBeam(false);
+      controller.setHeadlights(false);
+    }
   }
   if (headlights.falling(ctl->x())) {
   }
 
   if (headlightsFlash.rising(ctl->a())) {
-    controller.setHeadlights(!controller.getLightingState().headlights);
+    saved_high_beam = controller.getLightingState().highBeam;
+    controller.setHighBeam(true);
     Serial.println("A Pressed");
   }
 
   if (headlightsFlash.falling(ctl->a())) {
-    controller.setHeadlights(!controller.getLightingState().headlights);
+    controller.setHighBeam(saved_high_beam);
     Serial.println("A Relased");
   }
 

@@ -17,7 +17,7 @@ RcCarController::RcCarController() {
   motorCommand = 0.0f;
   brakeCommand = 0.0f;
 
-  lights = { false, false, false, false, false };
+  lights = { false, false, false, false, false, false, false };
 
   virtualSpeed = 0.0f;
   virtualAccel = 0.0f;
@@ -27,10 +27,9 @@ RcCarController::RcCarController() {
   failsafeTimeoutMs = 500;
   failsafeActive = false;
 }
-void RcCarController::begin()
-{
+void RcCarController::begin() {
   prefs.begin("rc_cfg", false);
-  trim = prefs.getInt("steer_trim", 0);  
+  trim = prefs.getInt("steer_trim", 0);
   Serial.printf("Saved Trim=%d\n", trim);
 }
 
@@ -53,7 +52,7 @@ void RcCarController::setSteering(float value) {
   lastUpdateMs = millis();
 
   constexpr float STEER_ACTIVATE_TH = 0.35f;
-  constexpr float STEER_CENTER_TH  = 0.10f;
+  constexpr float STEER_CENTER_TH = 0.10f;
 
   // ===== RIGHT SIGNAL AUTO CANCEL =====
   if (lights.rightSignal) {
@@ -105,6 +104,17 @@ void RcCarController::setDirection(Direction dir) {
 
 void RcCarController::setHeadlights(bool on) {
   lights.headlights = on;
+}
+
+void RcCarController::setHighBeam(bool on) {
+  lights.highBeam = on;
+}
+
+void RcCarController::setBrakeLights(bool on) {
+  lights.brakeLights = on;
+}
+void RcCarController::setReverseLight(bool on) {
+  lights.reverseLight = on;
 }
 
 void RcCarController::setLeftSignal(bool on) {
