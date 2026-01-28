@@ -51,8 +51,41 @@ void RcCarController::setBrake(float value) {
 void RcCarController::setSteering(float value) {
   steering = clamp(value, -1.0f, 1.0f);
   lastUpdateMs = millis();
-  //Serial.printf("Steering=%f\n", steering);
+
+  constexpr float STEER_ACTIVATE_TH = 0.35f;
+  constexpr float STEER_CENTER_TH  = 0.10f;
+
+  // ===== RIGHT SIGNAL AUTO CANCEL =====
+  if (lights.rightSignal) {
+    // sağa yeterince kırıldıysa arm et
+    if (steering > STEER_ACTIVATE_TH) {
+      rightSignalArmed = true;
+    }
+
+    // arm edildikten sonra merkeze dönerse kapat
+    if (rightSignalArmed && fabs(steering) < STEER_CENTER_TH) {
+      lights.rightSignal = false;
+      rightSignalArmed = false;
+    }
+  } else {
+    rightSignalArmed = false;
+  }
+
+  // ===== LEFT SIGNAL AUTO CANCEL =====
+  if (lights.leftSignal) {
+    if (steering < -STEER_ACTIVATE_TH) {
+      leftSignalArmed = true;
+    }
+
+    if (leftSignalArmed && fabs(steering) < STEER_CENTER_TH) {
+      lights.leftSignal = false;
+      leftSignalArmed = false;
+    }
+  } else {
+    leftSignalArmed = false;
+  }
 }
+
 
 void RcCarController::setSteeringTrim(int32_t value) {
   trim = value;

@@ -88,6 +88,10 @@ private:
   float brakeCommand;
 
   LightingState lights;
+bool leftSignalArmed  = false;
+bool rightSignalArmed = false;
+
+
 
   // Failsafe
   uint32_t lastUpdateMs;

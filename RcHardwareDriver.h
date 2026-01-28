@@ -12,7 +12,7 @@ public:
 
 private:
   void driveMotor(float motorCmd, float brakeCmd, RcCarController::Gear currentGear, float current_speed, const RcCarController& controller);
-  void driveSteering(float steeringCmd, int32_t trimPulseUs, bool releaseAfterMove = false,                     uint32_t holdTimeMs = 200);
+  void driveSteering(float steeringCmd, int32_t trimPulseUs, bool releaseAfterMove = false, uint32_t holdTimeMs = 200);
   void driveLights(const RcCarController::LightingState& lights);
 
   // ================= BRAKE PROFILE =================
@@ -33,7 +33,7 @@ private:
 
   bool signalBlinkState = false;
   uint32_t lastBlinkMs = 0;
-  static constexpr uint32_t BLINK_PERIOD_MS = 500;
+  static constexpr uint32_t BLINK_PERIOD_MS = 400;
 
   // PWM channels
   static constexpr int MOTOR_PWM_CH = 2;

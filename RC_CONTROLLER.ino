@@ -13,6 +13,7 @@ ButtonEdge leftSig;
 ButtonEdge rightSig;
 ButtonEdge hazard;
 ButtonEdge headlights;
+ButtonEdge headlightsFlash;
 ButtonEdge gear;
 ButtonEdge dpadup;
 ButtonEdge dpaddn;
@@ -93,30 +94,57 @@ void processGamepad(ControllerPtr ctl) {
   controller.setBrake((float)(ctl->brake()) / 1023);
   controller.setSteering((float)(ctl->axisX() - 4) / 512);
   //controller.setHazard(true);
+  // X -> Headlights
+  if (headlights.rising(ctl->x())) {
+    Serial.println("X Pressed");
+    controller.setHeadlights(!controller.getLightingState().headlights);
+  }
+  if (headlights.falling(ctl->x())) {
+  }
+
+  if (headlightsFlash.rising(ctl->a())) {
+    controller.setHeadlights(!controller.getLightingState().headlights);
+    Serial.println("A Pressed");
+  }
+
+  if (headlightsFlash.falling(ctl->a())) {
+    controller.setHeadlights(!controller.getLightingState().headlights);
+    Serial.println("A Relased");
+  }
 
   // L1 -> Left signal
   if (leftSig.rising(ctl->l1())) {
     controller.setLeftSignal(!controller.getLightingState().leftSignal);
+  }
+  if (leftSig.falling(ctl->l1())) {
   }
 
   // R1 -> Right signal
   if (rightSig.rising(ctl->r1())) {
     controller.setRightSignal(!controller.getLightingState().rightSignal);
   }
+  if (rightSig.falling(ctl->r1())) {
+  }
 
   // Triangle -> Hazard
   if (hazard.rising(ctl->y())) {
     controller.setHazard(!controller.isHazardActive());
+  }
+  if (hazard.falling(ctl->y())) {
   }
 
   // DPAD_UP -> Shift Up
   if (dpadup.rising(ctl->dpad() & DPAD_UP)) {
     controller.shiftUp();
   }
+  if (dpadup.falling(ctl->dpad() & DPAD_UP)) {
+  }
 
   // DPAD_DOWN -> Shift Down
   if (dpaddn.rising(ctl->dpad() & DPAD_DOWN)) {
     controller.shiftDown();
+  }
+  if (dpaddn.falling(ctl->dpad() & DPAD_DOWN)) {
   }
 
   // DPAD_RIGHT -> Trim++
@@ -124,11 +152,15 @@ void processGamepad(ControllerPtr ctl) {
     controller.setSteeringTrim(controller.getSteeringTrim() + 5);
     Serial.printf("Trim=%d\n", controller.getSteeringTrim());
   }
+  if (dpadright.falling(ctl->dpad() & DPAD_RIGHT)) {
+  }
 
   // DPAD_LEFT -> Trim--
   if (dpadleft.rising(ctl->dpad() & DPAD_LEFT)) {
     controller.setSteeringTrim(controller.getSteeringTrim() - 5);
     Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+  }
+  if (dpadleft.falling(ctl->dpad() & DPAD_LEFT)) {
   }
   if (share.rising(ctl->miscButtons() & 0x02)) {
     if (ota.isActive()) {
@@ -137,29 +169,13 @@ void processGamepad(ControllerPtr ctl) {
       ota.begin("RcController", "RcController", "12345678");
     }
   }
+  if (share.falling(ctl->miscButtons() & 0x02)) {
+  }
 
   rumble.update(controller, ctl);
 
 
-  if (ctl->b()) {
-    // Turn on the 4 LED. Each bit represents one LED.
-    static int led = 0;
-    led++;
-    // Some gamepads like the DS3, DualSense, Nintendo Wii, Nintendo Switch
-    // support changing the "Player LEDs": those 4 LEDs that usually indicate
-    // the "gamepad seat".
-    // It is possible to change them by calling:
-    ctl->setPlayerLEDs(led & 0x0f);
-  }
 
-  if (ctl->x()) {
-    // Some gamepads like DS3, DS4, DualSense, Switch, Xbox One S, Stadia support rumble.
-    // It is possible to set it by calling:
-    // Some controllers have two motors: "strong motor", "weak motor".
-    // It is possible to control them independently.
-    ctl->playDualRumble(0 /* delayedStartMs */, 250 /* durationMs */, 0x80 /* weakMagnitude */,
-                        0x40 /* strongMagnitude */);
-  }
 
   // Another way to query controller data is by getting the buttons() function.
   // See how the different "dump*" functions dump the Controller info.
