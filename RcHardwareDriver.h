@@ -21,7 +21,7 @@ private:
     uint8_t pwmHold;   // tutma
   };
 
-  static constexpr uint32_t BRAKE_RAMP_TIME = 2000;  // ms
+  static constexpr uint32_t BRAKE_RAMP_TIME = 3000;  // ms
 
   // 1–4 vites için fren karakteristiği
   BrakeProfile brakeTable[4] = {

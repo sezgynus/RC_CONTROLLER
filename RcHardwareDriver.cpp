@@ -48,7 +48,7 @@ void RcHardwareDriver::begin() {
 
 void RcHardwareDriver::update(RcCarController& controller) {
   driveMotor(controller.getMotorCommand(), controller.getBrakeCommand(), controller.getGear(), controller.getVirtualSpeed(), controller);
-  driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim(), true, 250);
+  driveSteering(controller.getSteeringCommand(), controller.getSteeringTrim(), true, 500);
   driveLights(controller.getLightingState());
 }
 
