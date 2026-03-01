@@ -282,11 +282,13 @@ float RcCarController::getVirtualAcceleration() const {
 void RcCarController::shiftUp() {
   if (gearLevel < Gear::GEAR4) {
     gearLevel = static_cast<Gear>(static_cast<int>(gearLevel) + 1);
+    //Serial.println("Shift up");
   }
 }
 
 void RcCarController::shiftDown() {
   if (gearLevel > Gear::GEAR1) {
     gearLevel = static_cast<Gear>(static_cast<int>(gearLevel) - 1);
+    //Serial.println("Shift down");
   }
 }

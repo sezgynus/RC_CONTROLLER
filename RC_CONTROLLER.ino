@@ -102,8 +102,7 @@ void processGamepad(ControllerPtr ctl) {
       controller.setHeadlights(true);
     } else if (controller.getLightingState().headlights & !controller.getLightingState().highBeam) {
       controller.setHighBeam(true);
-    }
-    else if (controller.getLightingState().headlights & controller.getLightingState().highBeam) {
+    } else if (controller.getLightingState().headlights & controller.getLightingState().highBeam) {
       controller.setHighBeam(false);
       controller.setHeadlights(false);
     }
@@ -145,9 +144,32 @@ void processGamepad(ControllerPtr ctl) {
 
   // DPAD_UP -> Shift Up
   if (dpadup.rising(ctl->dpad() & DPAD_UP)) {
-    controller.shiftUp();
+    if ((controller.getGear() >= 1)) {
+      if (ctl->miscButtons() & 0x04) {
+        controller.shiftUp();
+      }
+    } else {
+      controller.shiftUp();
+    }
   }
   if (dpadup.falling(ctl->dpad() & DPAD_UP)) {
+    switch (controller.getGear()) {
+      case 0:                         // Vites 1
+        ctl->setColorLED(0, 255, 0);  // Yeşil
+        break;
+      case 1:                           // Vites 2
+        ctl->setColorLED(255, 255, 0);  // Sarı
+        break;
+      case 2:                           // Vites 3
+        ctl->setColorLED(255, 30, 0);  // Turuncu
+        break;
+      case 3:                         // Vites 4
+        ctl->setColorLED(255, 0, 0);  // Kırmızı
+        break;
+      default:
+        ctl->setColorLED(0, 0, 0);  // Kapalı / bilinmeyen vites
+        break;
+    }
   }
 
   // DPAD_DOWN -> Shift Down
@@ -155,20 +177,42 @@ void processGamepad(ControllerPtr ctl) {
     controller.shiftDown();
   }
   if (dpaddn.falling(ctl->dpad() & DPAD_DOWN)) {
+
+    switch (controller.getGear()) {
+      case 0:                         // Vites 1
+        ctl->setColorLED(0, 255, 0);  // Yeşil
+        break;
+      case 1:                           // Vites 2
+        ctl->setColorLED(255, 255, 0);  // Sarı
+        break;
+      case 2:                           // Vites 3
+        ctl->setColorLED(255, 30, 0);  // Turuncu
+        break;
+      case 3:                         // Vites 4
+        ctl->setColorLED(255, 0, 0);  // Kırmızı
+        break;
+      default:
+        ctl->setColorLED(0, 0, 0);  // Kapalı / bilinmeyen vites
+        break;
+    }
   }
 
   // DPAD_RIGHT -> Trim++
   if (dpadright.rising(ctl->dpad() & DPAD_RIGHT)) {
-    controller.setSteeringTrim(controller.getSteeringTrim() + 5);
-    Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+    if (ctl->miscButtons() & 0x04) {
+      controller.setSteeringTrim(controller.getSteeringTrim() + 5);
+      Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+    }
   }
   if (dpadright.falling(ctl->dpad() & DPAD_RIGHT)) {
   }
 
   // DPAD_LEFT -> Trim--
   if (dpadleft.rising(ctl->dpad() & DPAD_LEFT)) {
-    controller.setSteeringTrim(controller.getSteeringTrim() - 5);
-    Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+    if (ctl->miscButtons() & 0x04) {
+      controller.setSteeringTrim(controller.getSteeringTrim() - 5);
+      Serial.printf("Trim=%d\n", controller.getSteeringTrim());
+    }
   }
   if (dpadleft.falling(ctl->dpad() & DPAD_LEFT)) {
   }
@@ -231,6 +275,7 @@ void onDisconnectedController(ControllerPtr ctl) {
 }
 void onConnectedController(ControllerPtr ctl) {
   bool foundEmptySlot = false;
+  ctl->setColorLED(0, 255, 0);
   for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
     if (myControllers[i] == nullptr) {
       Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);

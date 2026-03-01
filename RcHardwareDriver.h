@@ -21,14 +21,14 @@ private:
     uint8_t pwmHold;   // tutma
   };
 
-  static constexpr uint32_t BRAKE_RAMP_TIME = 3000;  // ms
+  static constexpr uint32_t BRAKE_RAMP_TIME = 8000;  // ms
 
   // 1–4 vites için fren karakteristiği
   BrakeProfile brakeTable[4] = {
-    { 150, 110 },  // 1. vites
-    { 165, 120 },  // 2. vites
-    { 180, 130 },  // 3. vites
-    { 200, 140 }   // 4. vites
+    { 180, 120 },  // 1. vites
+    { 200, 120 },  // 2. vites
+    { 220, 120 },  // 3. vites
+    { 240, 120 }   // 4. vites
   };
 
   bool signalBlinkState = false;

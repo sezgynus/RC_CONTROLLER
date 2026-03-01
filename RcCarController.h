@@ -74,7 +74,7 @@ public:
   Gear getGear() const {
     return gearLevel;
   }
-  float gearMaxMotor[NUM_GEARS] = { 0.65f, 0.75f, 0.85f, 1.0f };  // vites başına max motor scaling
+  float gearMaxMotor[NUM_GEARS] = { 0.60f, 0.70f, 0.80f, 1.0f };  // vites başına max motor scaling
 private:
   Preferences prefs;
 
